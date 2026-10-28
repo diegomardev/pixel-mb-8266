@@ -338,7 +338,7 @@ Añade una fila `{"type":"random","seconds":10}` en `items` y envía una lista `
 }
 ```
 
-Cada turno elige una de las marcadas al azar, sin repetir la anterior cuando hay varias. La duración la establece `seconds`. Si la lista está vacía, muestra la hora durante ese turno. La lista admite hasta 48 nombres únicos de animaciones guardadas. Omitir `randomAnimations` conserva la selección anterior; enviar `[]` la vacía. Se guarda junto con la rotación. En la web, cada animación tiene un check y se confirma con «Aplicar y guardar rotación».
+Cada turno elige una de las marcadas al azar, sin repetir la anterior cuando hay varias. La duración la establece `seconds`. Si la lista está vacía, muestra la hora durante ese turno. La lista admite hasta 48 nombres únicos de animaciones guardadas. Omitir `randomAnimations` conserva la selección anterior; enviar `[]` la vacía. Se guarda junto con la rotación. En la web, «Usar en aleatorio» se guarda automáticamente al marcar o desmarcar. Un POST que contiene solo `randomAnimations` actualiza y guarda esa selección sin reiniciar la pantalla actual ni modificar la escena base. El orden y las duraciones se siguen confirmando con «Aplicar y guardar rotación».
 
 ## 8. Animaciones: listar, cargar, descargar y borrar
 

@@ -70,7 +70,7 @@ En «Rotación de pantallas», añade las páginas, ordena con Subir/Bajar y con
 
 Para mostrar valores externos, añade una fila Texto con `CO2: {Co2}` o un icono con texto. Los textos largos se desplazan. Aplica y guarda la rotación para conservar los cambios.
 
-Importa un JSON desde el editor y pulsa «Guardar en ESP8266». La placa guarda solo lo que elijas. Cada animación puede marcarse para la lista aleatoria; añade una fila «Animación aleatoria» para utilizarla. Las descargas desde el editor son JSON.
+Importa un JSON desde el editor y pulsa «Guardar en ESP8266». La placa guarda solo lo que elijas. La casilla «Usar en aleatorio» se guarda automáticamente al pulsarla. Cada animación puede marcarse para la lista aleatoria; añade una fila «Animación aleatoria» para utilizarla. Las descargas desde el editor son JSON.
 
 La [galería de animaciones](https://diegomardev.com/apps/pixel-mb) sirve para previsualizar y descargar; después se importan los archivos en el ESP. Este repositorio no redistribuye ese catálogo ni logos personales. Los ejemplos propios y cuatro efectos con licencia y atribuciones están en [`examples`](examples) y [`data/animations`](data/animations); consulta [`ANIMACIONES.md`](ANIMACIONES.md).
 
@@ -119,6 +119,7 @@ node tests/test_editor.js
 node tests/test_i18n.js
 node tests/test_board_status.js
 node tests/test_saved_previews.js
+node tests/test_random_autosave.js
 node tests/test_clock_options_editor.js
 node tests/test_rotation_duration.js
 node tests/test_base_scene.js
