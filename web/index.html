@@ -25,14 +25,14 @@
 <small>Este espacio también guarda la configuración. El tamaño de cada animación es diferente.</small>
 </div></div>
 <div class="row board-controls"><label for="brightness">Brillo</label><input id="brightness" type="number" min="0" max="255" value="24"><button id="setBrightness">Aplicar</button><button id="clock">Reloj</button><button id="off">Apagar</button><button id="on">Encender</button><button id="sync">Poner en hora</button><button id="stop">Terminar avisos</button><button class="primary" id="saveState">Guardar estado de arranque</button></div><small>Guardar conserva la escena base, las variables y el brillo. Los avisos son temporales. El reloj usa NTP o la hora enviada desde este navegador.</small></section>
-<section class="wide"><h2>Rotación de pantallas</h2><p class="muted">Mezcla hora, sensor y animaciones guardadas. Se muestran en el orden de la lista; los avisos tienen prioridad y después vuelve la secuencia.</p><label><input id="rotationEnabled" type="checkbox" checked> Activar rotación</label><p class="muted">Añade «Animación aleatoria» a la secuencia y marca las animaciones que podrá elegir en «Animaciones guardadas en la placa». Se elige una en cada turno, evitando repetir la anterior cuando hay varias. Si no hay ninguna marcada, muestra la hora. Guarda la rotación para aplicar la selección.</p><div id="rotationItems"></div><div class="row"><label for="rotationAdd">Añadir pantalla</label><select id="rotationAdd"><option value="clock">Hora</option><option value="temperature">Temperatura</option><option value="pressure">Presión</option></select><button id="addRotation">Añadir a la lista</button><button class="primary" id="saveRotation">Aplicar y guardar rotación</button><button id="readRotation">Leer secuencia guardada</button></div><p id="rotationDirty" class="muted" role="status"></p><p id="rotationStatus" class="muted" role="status">Consultando la rotación…</p><small>Hasta 16 pantallas, de 1 a 3600 segundos cada una. Usa Subir/Bajar para cambiar el orden. Aplica para guardar los cambios; las animaciones se repiten durante el tiempo elegido. Al añadir una animación se propone la duración de un ciclo, redondeada hacia arriba (1–3600 s); puedes modificarla. Añade «Texto» para usar todo el ancho de la matriz, sin icono. Los iconos de hasta 8×8 también admiten texto en su fila (hasta 64 bytes UTF-8), incluidas variables como {bmpTemp}; elige su color a la derecha del texto. Cada fila Hora tiene sus casillas Segundos y Días de la semana al final de la fila. Hora, temperatura y presión también tienen su propio selector de color. El texto largo se desplaza. Las lecturas sin sensor válido se omiten. Si toda la lista requiere un sensor ausente, se muestra la hora.</small></section><section class="wide"><h2>Sensor GY-BMP280</h2><p id="bmpStatus" class="muted">Consultando el sensor…</p><div class="row"><strong id="bmpTemperature">Temperatura: —</strong><strong id="bmpPressure">Presión: —</strong><button id="readSensor">Actualizar lectura</button><button id="showTemperature" disabled>Mostrar temperatura en matriz</button><button id="showPressure" disabled>Mostrar presión en matriz</button></div><small>Lectura cada 2 segundos por I²C en D3/D1. Puedes usar <code>{bmpTemp}</code> en °C y <code>{bmpPressure}</code> en hPa en tus textos. El BMP280 mide temperatura y presión; no humedad.</small></section><section class="wide"><h2>Variables</h2><p>Los textos admiten <code>{Temp}</code>, <code>{Hum}</code> o cualquier nombre definido aquí.</p><textarea id="variables" spellcheck="false">{"Co2":650,"Temp":23.4,"Hum":48,"TVOC":32}</textarea><div class="row"><button class="primary" id="sendVariables">Actualizar</button><button id="readVariables">Leer placa</button></div><small>Se actualizan en RAM sin desgastar la flash. Para conservarlas al reiniciar, pulsa «Guardar estado de arranque».</small></section>
+<section class="wide"><h2>Rotación de pantallas</h2><p class="muted">Mezcla hora, sensor y animaciones guardadas. Se muestran en el orden de la lista; los avisos tienen prioridad y después vuelve la secuencia.</p><label><input id="rotationEnabled" type="checkbox" checked> Activar rotación</label><p class="muted">Añade «Animación aleatoria» a la secuencia y marca las animaciones que podrá elegir en «Animaciones guardadas en la placa». Se elige una en cada turno, evitando repetir la anterior cuando hay varias. Si no hay ninguna marcada, muestra la hora. La selección se guarda automáticamente al marcar o desmarcar una animación.</p><div id="rotationItems"></div><div class="row"><label for="rotationAdd">Añadir pantalla</label><select id="rotationAdd"><option value="clock">Hora</option><option value="temperature">Temperatura</option><option value="pressure">Presión</option></select><button id="addRotation">Añadir a la lista</button><button class="primary" id="saveRotation">Aplicar y guardar rotación</button><button id="readRotation">Leer secuencia guardada</button></div><p id="rotationDirty" class="muted" role="status"></p><p id="rotationStatus" class="muted" role="status">Consultando la rotación…</p><small>Hasta 16 pantallas, de 1 a 3600 segundos cada una. Usa Subir/Bajar para cambiar el orden. Aplica para guardar los cambios; las animaciones se repiten durante el tiempo elegido. Al añadir una animación se propone la duración de un ciclo, redondeada hacia arriba (1–3600 s); puedes modificarla. Añade «Texto» para usar todo el ancho de la matriz, sin icono. Los iconos de hasta 8×8 también admiten texto en su fila (hasta 64 bytes UTF-8), incluidas variables como {bmpTemp}; elige su color a la derecha del texto. Cada fila Hora tiene sus casillas Segundos y Días de la semana al final de la fila. Hora, temperatura y presión también tienen su propio selector de color. El texto largo se desplaza. Las lecturas sin sensor válido se omiten. Si toda la lista requiere un sensor ausente, se muestra la hora.</small></section><section class="wide"><h2>Sensor GY-BMP280</h2><p id="bmpStatus" class="muted">Consultando el sensor…</p><div class="row"><strong id="bmpTemperature">Temperatura: —</strong><strong id="bmpPressure">Presión: —</strong><button id="readSensor">Actualizar lectura</button><button id="showTemperature" disabled>Mostrar temperatura en matriz</button><button id="showPressure" disabled>Mostrar presión en matriz</button></div><small>Lectura cada 2 segundos por I²C en D3/D1. Puedes usar <code>{bmpTemp}</code> en °C y <code>{bmpPressure}</code> en hPa en tus textos. El BMP280 mide temperatura y presión; no humedad.</small></section><section class="wide"><h2>Variables</h2><p>Los textos admiten <code>{Temp}</code>, <code>{Hum}</code> o cualquier nombre definido aquí.</p><textarea id="variables" spellcheck="false">{"Co2":650,"Temp":23.4,"Hum":48,"TVOC":32}</textarea><div class="row"><button class="primary" id="sendVariables">Actualizar</button><button id="readVariables">Leer placa</button></div><small>Se actualizan en RAM sin desgastar la flash. Para conservarlas al reiniciar, pulsa «Guardar estado de arranque».</small></section>
 <section class="wide"><h2>Texto y notificaciones</h2><div class="row"><label for="text">Texto</label><input id="text" value="Temp: {bmpTemp} C" maxlength="160" style="flex:1;min-width:180px"><label for="icon">Icono local</label><input id="icon" value="" list="iconChoices" placeholder="Sin icono" maxlength="20" style="width:130px"><datalist id="iconChoices"></datalist><label for="textColor">Color</label><input id="textColor" type="color" value="#00ff00"></div><div class="row"><label for="duration">Duración del aviso (s)</label><input id="duration" type="number" min="0" max="3600" value="0"><label for="repeat">Repetir</label><input id="repeat" type="number" min="1" max="20" value="1"><label><input id="force" type="checkbox" checked> Interrumpir aviso actual</label><button class="primary" id="notify">Enviar aviso</button><button id="base" disabled aria-pressed="false">Fijar como escena base</button></div><small>Duración 0 en avisos: automática según repetición. En escena base: indefinida. El icono debe estar cargado en la placa y tener hasta 8 píxeles de ancho si hay texto.</small></section>
 <section class="wide"><h2>Editor de animaciones</h2><div class="row"><label for="animationName">Nombre / ID</label><input id="animationName" value="mi_icono" maxlength="20"><label for="width">Ancho</label><input id="width" type="number" min="1" max="32" value="8"><label for="height">Alto</label><input id="height" type="number" min="1" max="8" value="8"><button id="new">Nueva</button><label for="frameMs">ms/fotograma</label><input id="frameMs" type="number" min="20" max="5000" value="150"></div>
 <canvas id="pixelCanvas" width="256" height="256" aria-label="Lienzo de píxeles; arrastra para pintar"></canvas>
 <div class="row"><label for="paintColor">Pincel</label><input id="paintColor" type="color" value="#ff38aa"><label><input id="erase" type="checkbox"> Borrador</label><button id="clear">Limpiar fotograma</button><button id="previous">←</button><span id="frameLabel"></span><button id="next">→</button><button id="add">Añadir</button><button id="duplicate">Duplicar</button><button id="remove">Eliminar</button><button id="preview">Vista previa ▶</button></div>
 <div class="row"><button class="primary" id="upload">Guardar en ESP8266</button><button id="play">Guardar y probar en matriz</button><button id="exportJson">Exportar JSON</button><label for="importFile">Importar JSON</label><input id="importFile" type="file" accept=".json,.awx,.awtrixer,.piskel" style="max-width:240px"></div><small>Hasta 120 fotogramas y 48 animaciones. Cada píxel se guarda como RGB565; se usa compresión sin pérdida cuando ahorra espacio. Guardar y probar envía el dibujo actual, reproduce al menos un ciclo y vuelve a la pantalla anterior.</small>
 </section>
-<section class="wide" id="savedAnimationsSection"><h2>Animaciones guardadas en la placa</h2><div class="row"><button id="list">Actualizar lista</button></div><div id="saved"></div></section>
+<section class="wide" id="savedAnimationsSection"><h2>Animaciones guardadas en la placa</h2><div class="row"><button id="list">Actualizar lista</button></div><p id="randomSaveStatus" class="muted" role="status" aria-live="polite"></p><div id="saved"></div></section>
 </div><p class="muted">API: <code>POST /api/v3/notify</code> · <code>POST /api/v3/settings</code> · <code>POST /api/variables</code>.</p><div id="message" role="status"></div>
 <script>
 'use strict';
@@ -69,7 +69,7 @@ const UI_EN={
   "Rotación de pantallas": "Screen rotation",
   "Mezcla hora, sensor y animaciones guardadas. Se muestran en el orden de la lista; los avisos tienen prioridad y después vuelve la secuencia.": "Combine the clock, sensor readings and saved animations. Screens follow the list order; notifications take priority, then the sequence resumes.",
   "Activar rotación": "Enable rotation",
-  "Añade «Animación aleatoria» a la secuencia y marca las animaciones que podrá elegir en «Animaciones guardadas en la placa». Se elige una en cada turno, evitando repetir la anterior cuando hay varias. Si no hay ninguna marcada, muestra la hora. Guarda la rotación para aplicar la selección.": "Add “Random animation” to the sequence and select its candidates under “Animations saved on the board”. One is chosen each turn, avoiding consecutive repeats when several are available. If none are selected, the clock is shown. Save the rotation to apply your selection.",
+  "Añade «Animación aleatoria» a la secuencia y marca las animaciones que podrá elegir en «Animaciones guardadas en la placa». Se elige una en cada turno, evitando repetir la anterior cuando hay varias. Si no hay ninguna marcada, muestra la hora. La selección se guarda automáticamente al marcar o desmarcar una animación.": "Add “Random animation” to the sequence and select its candidates under “Animations saved on the board”. One is chosen each turn, avoiding consecutive repeats when several are available. If none are selected, the clock is shown. The selection is saved automatically when you check or uncheck an animation.",
   "Añadir pantalla": "Add screen",
   "Hora": "Clock",
   "Temperatura": "Temperature",
@@ -301,9 +301,16 @@ const UI_EN={
   "Texto / animación": "Text / animation",
   "Apagada": "Off",
   "Almacenamiento no disponible": "Storage unavailable",
-  "No se pudo leer el estado de la placa.": "Could not read the board status."
+  "No se pudo leer el estado de la placa.": "Could not read the board status.",
+  "Guardando selección aleatoria…": "Saving random selection…",
+  "La placa no confirmó la selección aleatoria.": "The board did not confirm the random selection.",
+  "No se pudo confirmar el guardado de la selección aleatoria.": "Could not confirm that the random selection was saved.",
+  "Error al guardar la selección. Revisa las casillas y la conexión.": "Could not save the selection. Check the checkboxes and connection.",
+  "Selección aleatoria guardada.": "Random selection saved.",
+  "Selección aleatoria guardada automáticamente.": "Random selection saved automatically."
 };
 const UI_PATTERNS=[
+  ["No se pudo confirmar el guardado de la selección aleatoria. {0}","Could not confirm that the random selection was saved. {0}"],
   ["{0} % ocupado","{0} % used"],
   ["Borrar animación {0}","Delete animation {0}"],
   ["Vista previa de {0}","Preview of {0}"],
@@ -645,8 +652,55 @@ action('readSensor',readSensor);
 const rotationNames={clock:'Hora',temperature:'Temperatura',pressure:'Presión',animation:'Animación',random:'Animación aleatoria',text:'Texto'};
 function defaultRotationColor(type){return {clock:'#00b4ff',temperature:'#ff8020',pressure:'#00c8ff',animation:'#00ff00'}[type]||'#00ff00';}
 let rotationDraft=[],savedAnimations=[];
-let randomSelection=new Set();
-function syncRandomChecks(){document.querySelectorAll('[data-random-animation]').forEach(input=>{input.checked=randomSelection.has(input.dataset.randomAnimation);});}
+let randomSelection=new Set(),randomConfirmedSelection=new Set(),randomSelectionReady=false;
+let randomSaveBusy=false,rotationSaveBusy=false;
+const randomSaveQueue=[];
+function syncRandomChecks(){
+  document.querySelectorAll('[data-random-animation]').forEach(input=>{
+    input.checked=randomSelection.has(input.dataset.randomAnimation);
+    input.disabled=!randomSelectionReady||rotationSaveBusy;
+  });
+}
+function updateRotationSaveControls(){
+  $('saveRotation').disabled=randomSaveBusy||rotationSaveBusy;
+  $('readRotation').disabled=randomSaveBusy||rotationSaveBusy;
+}
+function rebuildRandomSelection(){
+  randomSelection=new Set(randomConfirmedSelection);
+  for(const change of randomSaveQueue){if(change.checked)randomSelection.add(change.name);else randomSelection.delete(change.name);}
+  syncRandomChecks();
+}
+function confirmRandomSelection(names){
+  randomConfirmedSelection=new Set(names||[]);randomSelectionReady=true;rebuildRandomSelection();
+}
+function setRandomAnimation(name,checked){
+  if(!randomSelectionReady||rotationSaveBusy){syncRandomChecks();return Promise.resolve();}
+  randomSaveQueue.push({name,checked});rebuildRandomSelection();return saveQueuedRandomSelections();
+}
+async function saveQueuedRandomSelections(){
+  if(randomSaveBusy)return;
+  randomSaveBusy=true;updateRotationSaveControls();let failed=false;
+  $('randomSaveStatus').textContent='Guardando selección aleatoria…';message('Guardando selección aleatoria…');
+  try{
+    while(randomSaveQueue.length){
+      const change=randomSaveQueue[0],selection=new Set(randomConfirmedSelection);
+      if(change.checked)selection.add(change.name);else selection.delete(change.name);
+      try{
+        const result=await json('/api/rotation','POST',{randomAnimations:[...selection]});
+        if(!Array.isArray(result.randomAnimations))throw Error('La placa no confirmó la selección aleatoria.');
+        randomConfirmedSelection=new Set(result.randomAnimations);showRotationStatus(result);
+      }catch(error){
+        failed=true;
+        // A response can be lost after a successful write: read back what the board has.
+        try{const actual=await json('/api/rotation');if(Array.isArray(actual.randomAnimations))randomConfirmedSelection=new Set(actual.randomAnimations);}catch{}
+        message('No se pudo confirmar el guardado de la selección aleatoria. '+translateUi(error.message),true);
+      }
+      randomSaveQueue.shift();rebuildRandomSelection();
+    }
+    $('randomSaveStatus').textContent=failed?'Error al guardar la selección. Revisa las casillas y la conexión.':'Selección aleatoria guardada.';
+    if(!failed)message('Selección aleatoria guardada automáticamente.');
+  }finally{randomSaveBusy=false;updateRotationSaveControls();}
+}
 function rotationDirty(){ $('rotationDirty').textContent='Cambios pendientes: pulsa Aplicar y guardar rotación.'; }
 function animationRotationSeconds(animation){if(!animation||!Number.isInteger(animation.frames)||animation.frames<1||!Number.isInteger(animation.frameMs)||animation.frameMs<1)throw Error('No se pudo calcular la duración. Actualiza la lista de animaciones.');return Math.max(1,Math.min(3600,Math.ceil(animation.frames*animation.frameMs/1000)));}
 function addRotationItem(value){if(rotationDraft.length>=16)throw Error('Máximo 16 pantallas.');const [type,name]=value.split(':');rotationDraft.push(type==='animation'?{type,animation:safeName(name),seconds:animationRotationSeconds(savedAnimations.find(a=>a.name===name))}:type==='text'?{type,text:'Temp: {bmpTemp} C',seconds:5,color:'#00ff00'}:type==='clock'?{type,seconds:10,showSeconds:false,showWeekdays:true}:{type,seconds:5});renderRotationItems();rotationDirty();}
@@ -680,11 +734,11 @@ function renderRotationItems(){
 }
 function updateRotationChoices(){const select=$('rotationAdd'),previous=select.value;select.replaceChildren();for(const [value,label] of [...Object.entries(rotationNames).filter(([key])=>key!=='animation'),...savedAnimations.map(a=>['animation:'+a.name,`Animación: ${a.name} (${a.width}×${a.height} · ${animationRotationSeconds(a)} s)`])]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option);}if([...select.options].some(o=>o.value===previous))select.value=previous;renderRotationItems();}
 function showRotationStatus(r){if(!baseBusy)updateBaseButton(r);const name=r.page==='random'?`Aleatoria: ${r.animation||'sin selección (hora)'}`:r.page==='animation'?`Animación: ${r.animation}`:rotationNames[r.page]||r.page;$('rotationStatus').textContent=r.active?`${r.index+1}. ${name} · cambio en ${r.remainingSeconds} s`:r.enabled?'Rotación preparada; hay un aviso o una escena manual.':'Rotación desactivada.';}
-async function readRotation(fill=false){const r=await json('/api/rotation');if(fill){$('rotationEnabled').checked=r.enabled;rotationDraft=r.items.map(i=>({...i}));randomSelection=new Set(r.randomAnimations||[]);syncRandomChecks();renderRotationItems();$('rotationDirty').textContent='Secuencia guardada cargada.';}showRotationStatus(r);}
+async function readRotation(fill=false){if(fill&&(randomSaveBusy||rotationSaveBusy))return;const r=await json('/api/rotation');if(fill){$('rotationEnabled').checked=r.enabled;rotationDraft=r.items.map(i=>({...i}));confirmRandomSelection(r.randomAnimations);renderRotationItems();$('rotationDirty').textContent='Secuencia guardada cargada.';}showRotationStatus(r);}
 action('readRotation',()=>readRotation(true));
 action('addRotation',()=>addRotationItem($('rotationAdd').value));
 $('rotationEnabled').addEventListener('change',rotationDirty);
-action('saveRotation',async()=>{if(!rotationDraft.length||rotationDraft.length>16)throw Error('Añade entre 1 y 16 pantallas.');for(const item of rotationDraft){if(!Number.isInteger(item.seconds)||item.seconds<1||item.seconds>3600)throw Error('Cada pantalla debe durar entre 1 y 3600 segundos.');if(item.type==='text'&&!item.text)throw Error('Escribe el contenido de cada pantalla de texto.');if(item.text&&(new TextEncoder().encode(item.text).length>64||/[\x00-\x1f]/.test(item.text)))throw Error('Texto: hasta 64 bytes UTF-8 y sin saltos de línea.');}const r=await json('/api/rotation','POST',{enabled:$('rotationEnabled').checked,items:rotationDraft,randomAnimations:[...randomSelection]});showRotationStatus(r);$('rotationDirty').textContent='Orden y duraciones guardados.';message('Secuencia guardada para los próximos reinicios.');});
+action('saveRotation',async()=>{if(randomSaveBusy||rotationSaveBusy)return;rotationSaveBusy=true;syncRandomChecks();updateRotationSaveControls();try{if(!rotationDraft.length||rotationDraft.length>16)throw Error('Añade entre 1 y 16 pantallas.');for(const item of rotationDraft){if(!Number.isInteger(item.seconds)||item.seconds<1||item.seconds>3600)throw Error('Cada pantalla debe durar entre 1 y 3600 segundos.');if(item.type==='text'&&!item.text)throw Error('Escribe el contenido de cada pantalla de texto.');if(item.text&&(new TextEncoder().encode(item.text).length>64||/[\x00-\x1f]/.test(item.text)))throw Error('Texto: hasta 64 bytes UTF-8 y sin saltos de línea.');}const r=await json('/api/rotation','POST',{enabled:$('rotationEnabled').checked,items:rotationDraft,randomAnimations:[...randomSelection]});confirmRandomSelection(r.randomAnimations);showRotationStatus(r);$('rotationDirty').textContent='Orden y duraciones guardados.';message('Secuencia guardada para los próximos reinicios.');}finally{rotationSaveBusy=false;syncRandomChecks();updateRotationSaveControls();}});
 setInterval(()=>{if(!document.hidden)readRotation().catch(e=>{$('rotationStatus').textContent=e.message;});},2000);
 
 action('showTemperature',async()=>{await json('/api/v3/notify','POST',{text:'{bmpTemp} C',color:'#ff8020',duration:10,force:true});message('Temperatura enviada durante 10 segundos; después vuelve la pantalla anterior.');});
@@ -815,11 +869,29 @@ function resetSavedPreviews(){
   savedPreviewObserver=null;savedPreviewFrame=null;savedPreviewEntries=[];savedPreviewQueue=[];
 }
 function savedPreviewVisible(entry){const details=entry.canvas.closest('details');return entry.visible&&!document.hidden&&(!details||details.open);}
+function resizeSavedPreview(entry){
+  if(!entry.animation)return;
+  const a=entry.animation,ratio=Math.max(0.25,Number(window.devicePixelRatio)||1);
+  const available=Math.max(1,entry.canvas.parentElement.clientWidth-12);
+  // Quantize to whole device pixels: CSS downscaling otherwise makes uneven grid lines.
+  const scale=Math.max(1,Math.floor(Math.min(available/a.width,64/a.height)*ratio));
+  const gap=scale>2?Math.max(1,Math.min(scale-1,Math.round(ratio))):0;
+  const width=a.width*scale,height=a.height*scale;
+  if(entry.canvas.width!==width||entry.canvas.height!==height||entry.pixelGap!==gap){
+    entry.canvas.width=width;entry.canvas.height=height;entry.lastFrame=-1;
+  }
+  entry.pixelScale=scale;entry.pixelGap=gap;
+  entry.canvas.style.width=width/ratio+'px';entry.canvas.style.height=height/ratio+'px';
+}
+window.addEventListener('resize',()=>{
+  for(const entry of savedPreviewEntries)if(entry.animation)resizeSavedPreview(entry);
+  startSavedPreviewFrames();
+});
 function paintSavedPreview(entry,now){
   const a=entry.animation,index=Math.floor(Math.max(0,now-entry.startedAt)/a.frameMs)%a.frames.length;
   if(entry.lastFrame===index)return;
-  const ctx=entry.canvas.getContext('2d'),scale=12;ctx.fillStyle='#080d12';ctx.fillRect(0,0,entry.canvas.width,entry.canvas.height);
-  a.frames[index].forEach((color,pixel)=>{ctx.fillStyle=color;ctx.fillRect((pixel%a.width)*scale,Math.floor(pixel/a.width)*scale,scale-1,scale-1);});
+  const ctx=entry.canvas.getContext('2d'),scale=entry.pixelScale,gap=entry.pixelGap;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#080b0b';ctx.fillRect(0,0,entry.canvas.width,entry.canvas.height);
+  a.frames[index].forEach((color,pixel)=>{ctx.fillStyle=color;ctx.fillRect((pixel%a.width)*scale,Math.floor(pixel/a.width)*scale,scale-gap,scale-gap);});
   entry.lastFrame=index;
 }
 function animateSavedPreviews(now){
@@ -845,7 +917,7 @@ async function loadSavedPreviews(){
         const candidate=decode(await res.arrayBuffer());
         if(entry.generation!==savedPreviewGeneration)continue;
         entry.animation=candidate;entry.startedAt=performance.now();entry.state.hidden=true;
-        entry.canvas.width=candidate.width*12;entry.canvas.height=candidate.height*12;
+        resizeSavedPreview(entry);
         if(savedPreviewVisible(entry)){paintSavedPreview(entry,entry.startedAt);startSavedPreviewFrames();}
       }catch(error){
         if(entry.generation!==savedPreviewGeneration)continue;
@@ -855,6 +927,7 @@ async function loadSavedPreviews(){
   }finally{savedPreviewBusy=false;}
 }
 function queueSavedPreview(entry){
+  if(entry.animation)resizeSavedPreview(entry);
   if(!entry.animation&&!entry.failed&&!entry.queued){entry.queued=true;savedPreviewQueue.push(entry);}
   loadSavedPreviews();startSavedPreviewFrames();
 }
@@ -904,8 +977,8 @@ async function listAnimations(){
     const state=document.createElement('span');state.className='animation-preview-state';state.textContent='Cargando vista previa…';
     preview.append(canvas,state);card.prepend(preview);
     const choice=document.createElement('label');choice.className='animation-random';
-    const check=document.createElement('input');check.type='checkbox';check.dataset.randomAnimation=item.name;check.checked=randomSelection.has(item.name);
-    check.addEventListener('change',()=>{if(check.checked)randomSelection.add(item.name);else randomSelection.delete(item.name);rotationDirty();});
+    const check=document.createElement('input');check.type='checkbox';check.dataset.randomAnimation=item.name;check.checked=randomSelection.has(item.name);check.disabled=!randomSelectionReady||rotationSaveBusy;
+    check.addEventListener('change',()=>{setRandomAnimation(item.name,check.checked);});
     choice.append(check,document.createTextNode(' Usar en aleatorio'));card.append(choice);
     const actions=document.createElement('div');actions.className='animation-actions';
     for(const [label,fn]of [
