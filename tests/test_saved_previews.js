@@ -3,12 +3,12 @@ const source=fs.readFileSync(__dirname+'/../web/index.html','utf8').split('<scri
 const code=source.slice(source.indexOf('// Preview files are fetched'),source.indexOf('function makeAnimationDeleteButton('));
 const pending=[],requests=[],frames=new Map(),listeners={},deleted=[];let frameId=0,observer,listed=0,confirmDelete=false;
 const document={hidden:false,addEventListener:(event,fn)=>listeners[event]=fn};
-const ctx=vm.createContext({document,performance:{now:()=>1000},requestAnimationFrame:fn=>{frames.set(++frameId,fn);return frameId;},cancelAnimationFrame:id=>frames.delete(id),
+const ctx=vm.createContext({document,performance:{now:()=>1000},window:{devicePixelRatio:1,addEventListener(){}},requestAnimationFrame:fn=>{frames.set(++frameId,fn);return frameId;},cancelAnimationFrame:id=>frames.delete(id),
  IntersectionObserver:class{constructor(fn){this.fn=fn;observer=this;}observe(){}disconnect(){this.disconnected=true;}},
  api:url=>{requests.push(url);return new Promise((resolve,reject)=>pending.push({resolve,reject}));},decode:value=>value,
  confirm:()=>confirmDelete,translateUi:value=>value,json:async(url,method)=>deleted.push({url,method}),listAnimations:async()=>listed++});
 vm.runInContext(code,ctx);const run=code=>vm.runInContext(code,ctx);
-function makePreview(name){const paints=[],details={open:true};return {item:{name},canvas:{width:96,height:96,closest:()=>details,getContext:()=>({set fillStyle(v){},fillRect:(...args)=>paints.push(args)})},state:{hidden:false,textContent:'Cargando vista previa…'},details,paints};}
+function makePreview(name){const paints=[],details={open:true};return {item:{name},canvas:{width:96,height:96,style:{},parentElement:{clientWidth:192},closest:()=>details,getContext:()=>({set fillStyle(v){},fillRect:(...args)=>paints.push(args)})},state:{hidden:false,textContent:'Cargando vista previa…'},details,paints};}
 const a=makePreview('first'),b=makePreview('second');ctx.a=a;ctx.b=b;
 ctx.standalone={visible:true,canvas:{closest:()=>null}};assert.equal(run('savedPreviewVisible(standalone)'),true,'standalone gallery does not require a details element');
 run('registerSavedPreview(a.item,a.canvas,a.state);registerSavedPreview(b.item,b.canvas,b.state)');
@@ -17,9 +17,20 @@ observer.fn([{target:a.canvas,isIntersecting:true},{target:b.canvas,isIntersecti
 assert.equal(requests.length,1,'previews use a single request at a time');
 const animation={width:1,height:1,frameMs:100,frames:[['#ff0000'],['#00ff00']]};
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
+// Full-width previews must retain square pixels and equal-width grid gaps at any zoom.
+ctx.geometry=makePreview('matrix');ctx.geometry.animation={width:32,height:8,frameMs:100,frames:[Array(256).fill('#00ff00')]};ctx.geometry.lastFrame=-1;ctx.geometry.startedAt=1000;
+for(const ratio of [0.8,1,1.25,1.5,2]){
+ ctx.ratio=ratio;vm.runInContext('window.devicePixelRatio=ratio;resizeSavedPreview(geometry)',ctx);
+ assert(Number.isInteger(ctx.geometry.pixelScale));assert.equal(ctx.geometry.canvas.width,32*ctx.geometry.pixelScale);assert.equal(ctx.geometry.canvas.height,8*ctx.geometry.pixelScale);
+ assert(parseFloat(ctx.geometry.canvas.style.width)<=180);assert(parseFloat(ctx.geometry.canvas.style.height)<=64);
+ const gap=ctx.geometry.pixelGap;vm.runInContext('paintSavedPreview(geometry,1000)',ctx);
+ const pixels=ctx.geometry.paints.slice(-256);assert(pixels.every(rect=>rect[2]===ctx.geometry.pixelScale-gap&&rect[3]===ctx.geometry.pixelScale-gap));
+}
+vm.runInContext('window.devicePixelRatio=1',ctx);
+
 (async()=>{
  pending[0].resolve({arrayBuffer:async()=>animation});await tick();
- assert.equal(requests.length,2);assert(a.state.hidden);assert(a.paints.length>0);assert.equal(a.canvas.width,12);
+ assert.equal(requests.length,2);assert(a.state.hidden);assert(a.paints.length>0);assert.equal(a.canvas.width,64);
  pending[1].resolve({arrayBuffer:async()=>animation});await tick();assert(b.state.hidden);
  // A queued RAF timestamp may precede a newly loaded animation by part of a frame.
  run('animateSavedPreviews(999)');
