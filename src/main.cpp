@@ -604,7 +604,7 @@ void handleAnimations() {
 void handleStatus() {
   if (!authorized()) return;
   DynamicJsonDocument doc(8192);
-  doc["firmware"] = "Pixel-MB 1.0.23"; doc["api"] = "v3-subset+local-v1";
+  doc["firmware"] = "Pixel-MB 1.0.30"; doc["api"] = "v3-subset+local-v1";
   doc["ip"] = WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
   doc["port"] = HTTP_PORT;
   doc["wifiSsid"] = wifiSsid;
@@ -1078,7 +1078,7 @@ void ledBootTest() {
   Serial.println("Prueba LED enviada; no detecta electricamente si hay luz.");
 }
 void setup() {
-  Serial.begin(115200); Serial.println("\nPixel-MB 1.0.23 — Arduino / ESP8266");
+  Serial.begin(115200); Serial.println("\nPixel-MB 1.0.30 — Arduino / ESP8266");
   matrixReady = matrix.configurationValid();
   Serial.printf("Matriz: GPIO real=%d, LED reales=%u, esperados=%u, heap=%u\n",
     matrix.getPin(), matrix.numPixels(), uint16_t(MATRIX_WIDTH) * MATRIX_HEIGHT, ESP.getFreeHeap());
