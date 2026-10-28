@@ -105,13 +105,11 @@ pio run -e d1_mini_ota -t upload
 
 No cambies la contraseña generada entre compilaciones si quieres seguir actualizando el mismo dispositivo. La OTA de firmware conserva las animaciones y la configuración. La carga OTA del sistema de archivos está desactivada para evitar sustituir esos datos. Más detalles en [`OTA.md`](OTA.md).
 
-## Herramientas y pruebas
+## Pruebas para desarrolladores
 
-Python 3 es suficiente para convertir JSON/AWX.
+Estas pruebas son opcionales y requieren Python 3 y Node.js.
 
 ```sh
-python3 tools/awx.py mi-animacion.json mi-animacion.awx --compact
-python3 tools/awx.py mi-animacion.awx mi-animacion.json
 python3 -m unittest discover -s tests -p 'test_*.py'
 node tests/test_editor.js
 node tests/test_clock_options_editor.js
