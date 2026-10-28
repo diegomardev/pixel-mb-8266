@@ -22,6 +22,10 @@ assert.equal(run("translateUi('2. Hora · cambio en 5 s')"),'2. Clock · next sc
 assert.equal(run("translateUi('Temperatura: 23.4 °C')"),'Temperature: 23.4 °C');
 assert.equal(run("translateUi('Segundos del reloj de pantalla 1')"),'Seconds for clock on screen 1');
 assert.equal(run("translateUi('constructor')"),'constructor');
+assert.equal(run("translateUi('Borrar animación Hora')"),'Delete animation Hora');
+assert.equal(run("translateUi('Vista previa de Hora')"),'Preview of Hora');
+assert.equal(run("translateUi('8×8 · 2 fotogramas')"),'8×8 · 2 frames');
+assert.equal(run("translateUi('Usar en aleatorio')"),'Use for random playback');
 assert.equal(run("translateUi('CO2: {Co2}')"),'CO2: {Co2}');
 // All templates retain each captured value exactly once (no user content interpolation).
 run(`for(const [es,en] of UI_PATTERNS){const keys=[...es.matchAll(/\{(\d+)\}/g)].map(m=>m[1]).sort();const dest=[...en.matchAll(/\{(\d+)\}/g)].map(m=>m[1]).sort();if(JSON.stringify(keys)!==JSON.stringify(dest))throw Error(es);}`);
