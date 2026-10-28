@@ -376,9 +376,13 @@ void handleRotation() {
     if(!parseRotation(request.as<JsonObjectConst>(),*next,err,true)){errorReply(400,err);return;}
     if(!saveRotation(*next)){errorReply(507,"No se pudo guardar la rotacion");return;}
     rotationConfig=*next;
-    if(next->enabled){baseScene=Scene();baseScene.mode="rotation";}
-    else if(baseScene.mode=="rotation")baseScene=Scene();
-    if(!notifying)activate(baseScene);
+    const bool randomOnly=request.as<JsonObjectConst>().size()==1 && request.containsKey("randomAnimations");
+    // Updating the random pool must not unpin a scene or restart the active screen.
+    if(!randomOnly){
+      if(next->enabled){baseScene=Scene();baseScene.mode="rotation";}
+      else if(baseScene.mode=="rotation")baseScene=Scene();
+      if(!notifying)activate(baseScene);
+    }
   }
   DynamicJsonDocument response(6144);rotationJson(response.to<JsonObject>());jsonReply(200,response);
 }
@@ -604,7 +608,7 @@ void handleAnimations() {
 void handleStatus() {
   if (!authorized()) return;
   DynamicJsonDocument doc(8192);
-  doc["firmware"] = "Pixel-MB 1.0.30"; doc["api"] = "v3-subset+local-v1";
+  doc["firmware"] = "Pixel-MB 1.0.31"; doc["api"] = "v3-subset+local-v1";
   doc["ip"] = WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
   doc["port"] = HTTP_PORT;
   doc["wifiSsid"] = wifiSsid;
@@ -1078,7 +1082,7 @@ void ledBootTest() {
   Serial.println("Prueba LED enviada; no detecta electricamente si hay luz.");
 }
 void setup() {
-  Serial.begin(115200); Serial.println("\nPixel-MB 1.0.30 — Arduino / ESP8266");
+  Serial.begin(115200); Serial.println("\nPixel-MB 1.0.31 — Arduino / ESP8266");
   matrixReady = matrix.configurationValid();
   Serial.printf("Matriz: GPIO real=%d, LED reales=%u, esperados=%u, heap=%u\n",
     matrix.getPin(), matrix.numPixels(), uint16_t(MATRIX_WIDTH) * MATRIX_HEIGHT, ESP.getFreeHeap());
