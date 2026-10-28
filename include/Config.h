@@ -7,7 +7,7 @@ constexpr char WIFI_PASSWORD[] = "";
 constexpr char SETUP_AP_PASSWORD[] = "pixel-mb-local"; // Clave del WiFi PIXEL-MB-xxxxxx (cambiar si lo deseas)
 constexpr char HOSTNAME[] = "pixel-mb";
 // Si no está vacía, protege TODA la API con la cabecera X-API-Key.
-// El editor la solicita y la conserva solo en memoria durante la sesión.
+// Los clientes externos la envían en X-API-Key. El editor integrado no solicita claves API.
 constexpr char API_KEY[] = "";
 constexpr char TIMEZONE[] = "CET-1CEST,M3.5.0,M10.5.0/3"; // España peninsular
 
