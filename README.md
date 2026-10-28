@@ -2,6 +2,10 @@
 
 Firmware Arduino para convertir un **D1 mini / ESP8266** y una matriz WS2812B de **32×8** en una pantalla autónoma. Incluye editor web, API HTTP, animaciones locales, sensor BMP280 y actualizaciones OTA. No necesita un servidor externo.
 
+![Reloj Pixel-MB con segundos e indicadores de los días de la semana](docs/images/pixel-mb-weekdays.png)
+
+Vista de la matriz 32×8: reloj con segundos y siete indicadores de lunes a domingo; el día actual se destaca en blanco.
+
 La API es una implementación independiente con compatibilidad parcial con mensajes AWTRIX v3. El proyecto no es oficial ni está afiliado a AWTRIX.
 
 ## Funciones
