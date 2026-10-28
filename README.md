@@ -6,14 +6,12 @@ Firmware Arduino para convertir un **D1 mini / ESP8266** y una matriz WS2812B de
 
 Vista de la matriz 32×8: reloj con segundos y siete indicadores de lunes a domingo; el día actual se destaca en blanco.
 
-La API es una implementación independiente con compatibilidad parcial con mensajes AWTRIX v3. El proyecto no es oficial ni está afiliado a AWTRIX.
 
 ## Funciones
 
 - Portal WiFi para configurar la red y escanear redes de 2,4 GHz.
 - Hotspot de recuperación tras 15 segundos sin conexión y reintentos cada 30 segundos.
 - Editor de animaciones en el ESP: importar/exportar JSON y guardar hasta 48 animaciones.
-- Reproducción de AWX1 y AWX2 con compresión RLE sin pérdida de los colores RGB565.
 - Rotación ordenable de hasta 16 pantallas con duración y color independientes.
 - Reloj, temperatura, presión, texto, animación concreta y animación aleatoria.
 - Opciones de segundos y días de la semana en cada fila Hora.
@@ -109,7 +107,7 @@ No cambies la contraseña generada entre compilaciones si quieres seguir actuali
 
 ## Herramientas y pruebas
 
-Python 3 es suficiente para convertir JSON/AWX. La importación AWTRIXER/Piskel en el ordenador requiere Pillow; no es necesario instalarlo para importar desde el editor del ESP.
+Python 3 es suficiente para convertir JSON/AWX.
 
 ```sh
 python3 tools/awx.py mi-animacion.json mi-animacion.awx --compact
@@ -129,7 +127,3 @@ Las pruebas nativas C++ del reloj, rotación, reconexión, renderizado e indicad
 g++ -std=c++17 -Iinclude tests/test_weekday.cpp -o /tmp/pixel-weekday
 /tmp/pixel-weekday
 ```
-
-## Licencias
-
-El código propio y los dibujos de demostración se distribuyen bajo la licencia [MIT](LICENSE). Las partes derivadas de AWTRIX conservan sus licencias y atribuciones específicas en [`ANIMACIONES.md`](ANIMACIONES.md), [`THIRD_PARTY.md`](THIRD_PARTY.md) y [`licenses`](licenses). La licencia MIT del proyecto no concede permisos sobre animaciones de terceros descargadas por separado.
