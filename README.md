@@ -13,6 +13,8 @@ Vista de la matriz 32×8: reloj con segundos y siete indicadores de lunes a domi
 
 - Portal WiFi para configurar la red y escanear redes de 2,4 GHz.
 - Hotspot de recuperación tras 15 segundos sin conexión y reintentos cada 30 segundos.
+- Miniaturas animadas de los archivos guardados y papelera en cada tarjeta.
+- Panel de estado con barra de almacenamiento ocupado/libre para animaciones.
 - Editor de animaciones en el ESP: importar/exportar JSON y guardar hasta 48 animaciones.
 - Rotación ordenable de hasta 16 pantallas con duración y color independientes.
 - Reloj, temperatura, presión, texto, animación concreta y animación aleatoria.
@@ -115,6 +117,8 @@ Estas pruebas son opcionales y requieren Python 3 y Node.js.
 python3 -m unittest discover -s tests -p 'test_*.py'
 node tests/test_editor.js
 node tests/test_i18n.js
+node tests/test_board_status.js
+node tests/test_saved_previews.js
 node tests/test_clock_options_editor.js
 node tests/test_rotation_duration.js
 node tests/test_base_scene.js
