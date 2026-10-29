@@ -56,6 +56,12 @@ La primera compilación crea `ota.local.json` y `include/LocalOtaConfig.h` con c
 
 ## Configurar WiFi
 
+| Acceso inicial | Valor predeterminado |
+| --- | --- |
+| Red WiFi del ESP (hotspot) | `PIXEL-MB-xxxxxx` |
+| Contraseña del hotspot | **`pixel-mb-local`** |
+| Portal de configuración | **http://192.168.4.1/** |
+
 1. Conecta la placa por USB para la primera carga.
 2. Sin red configurada, busca el hotspot **`PIXEL-MB-xxxxxx`**.
 3. Conéctate con la clave **`pixel-mb-local`**.
@@ -63,6 +69,10 @@ La primera compilación crea `ota.local.json` y `include/LocalOtaConfig.h` con c
 5. Al conectar al router, la matriz muestra su IP durante 4 segundos. Abre **http://IP_DEL_ESP/**, sin añadir puerto.
 
 Si la red falla, el hotspot aparece tras 15 segundos y se intenta recuperar la conexión cada 30 segundos. El portal permanece disponible mientras reintenta. El reloj sincroniza la hora mediante NTP y está configurado para España peninsular; cambia `TIMEZONE` en `Config.h` si procede.
+
+![Configuración WiFi, IP fija/DHCP y estado de la placa](docs/images/pixel-mb-wifi-status.png)
+
+El interruptor «IP fija» permite introducir IP, puerta de enlace, máscara y DNS. «Guardar y conectar» guarda WiFi y direccionamiento juntos, también en el primer arranque. «Aplicar IP fija» / «Aplicar DHCP» cambia solo el direccionamiento y conserva la red y su contraseña.
 
 ## Rotación y animaciones
 
@@ -79,6 +89,8 @@ Para cargar tus propios JSON de `animations_default` por API:
 ```sh
 python3 tools/install_default_animations.py --host http://IP_DEL_ESP --upload
 ```
+
+![Editor de animaciones y miniaturas de los archivos guardados](docs/images/pixel-mb-animation-editor.png)
 
 ## API rápida
 
