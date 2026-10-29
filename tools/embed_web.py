@@ -30,3 +30,11 @@ target = root / 'include/DefaultAnimations.h'
 content = ''.join(parts)
 if not target.exists() or target.read_text() != content:
     target.write_text(content)
+
+# Interfaz del actualizador, protegida por la autenticación Digest existente.
+update = (root / "web/update.html").read_text(encoding="utf-8")
+assert ")UPDATEHTML\"" not in update
+content = '#pragma once\n#include <Arduino.h>\nstatic const char UPDATE_UI[] PROGMEM = R"UPDATEHTML(' + update + ')UPDATEHTML";\n'
+target = root / "include/UpdateUI.h"
+if not target.exists() or target.read_text() != content:
+    target.write_text(content)
