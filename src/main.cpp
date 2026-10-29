@@ -29,10 +29,13 @@ extern "C" {
 #include "VariableUpdate.h"
 #include "WifiScanResults.h"
 #include "WebUI.h"
+#include "UpdateUI.h"
+#include "WebAccess.h"
 
 ESP8266WebServer server(HTTP_PORT);
 ESP8266WebServer portal(80);
 DNSServer dns;
+WebAccessConfig webAccess;
 String wifiSsid, wifiPassword;
 NetworkAddress networkAddress;
 IPAddress networkIP(uint32_t ip){return IPAddress(ip>>24,(ip>>16)&255,(ip>>8)&255,ip&255);}
@@ -99,7 +102,15 @@ void errorReply(int status, const String &message) {
   jsonReply(status, doc);
 }
 void okReply() { server.send(200, "application/json", "{\"ok\":true}"); }
+bool webAuthenticated() {
+  return !webAccess.enabled || (server.header("Authorization").startsWith("Digest ") && server.authenticate(webAccess.username.c_str(),webAccess.password.c_str()));
+}
+bool webAuthorized() {
+  if(webAuthenticated())return true;
+  server.requestAuthentication(DIGEST_AUTH,"Pixel-MB Web");return false;
+}
 bool authorized() {
+  if(!webAuthorized())return false;
   if (!strlen(API_KEY) || server.header("X-API-Key") == API_KEY) return true;
   errorReply(401, "Se requiere la cabecera X-API-Key");
   return false;
@@ -443,7 +454,8 @@ void handleVariables() {
   }
   DynamicJsonDocument request(4096);
   if (!readJson(request)) return;
-  DynamicJsonDocument next(4096); next.set(variables.as<JsonObjectConst>());
+  DynamicJsonDocument next(4096);
+  if(server.arg("replace")=="true")next.to<JsonObject>();else next.set(variables.as<JsonObjectConst>());
   for (JsonPairConst pair : request.as<JsonObjectConst>()) {
     String key = pair.key().c_str();
     if (key == "bmpTemp" || key == "bmpPressure") {
@@ -528,7 +540,7 @@ void handleUploadChunk() {
     }
     uploadSeen = true; uploadBytes = 0; uploadError = "";
     uploadName = server.arg("name");
-    uploadAllowed = (!strlen(API_KEY) || server.header("X-API-Key") == API_KEY);
+    uploadAllowed = webAuthenticated() && (!strlen(API_KEY) || server.header("X-API-Key") == API_KEY);
     if (!uploadAllowed) { uploadError = "No autorizado"; return; }
     if (!fsReady) { uploadError = "LittleFS no está montado"; return; }
     if (!validName(uploadName)) { uploadError = "name debe tener 1..20 letras, números, - o _"; return; }
@@ -607,7 +619,7 @@ void handleAnimations() {
     File file=dir.openFile("r");AnimationInfo info;if(!inspectAnimation(file,info))continue;
     StaticJsonDocument<256> item;String filename=dir.fileName();int slash=filename.lastIndexOf('/');
     item["name"]=filename.substring(slash+1,filename.length()-4);item["width"]=info.width;item["height"]=info.height;
-    item["frames"]=info.frames;item["frameMs"]=info.frameMs;
+    item["frames"]=info.frames;item["frameMs"]=info.frameMs;item["bytes"]=file.size();
     String body;serializeJson(item,body);if(!first)server.sendContent(",");first=false;server.sendContent(body);yield();
   }
   server.sendContent("]}");server.sendContent("");
@@ -624,7 +636,7 @@ void handleStatus() {
   ota["enabled"] = true; ota["ready"] = otaStarted;
   ota["updating"] = otaUpdating; ota["port"] = OTA_PORT;
   ota["hostname"] = HOSTNAME; ota["passwordRequired"] = true;
-  ota["httpPath"] = "/update"; ota["httpUser"] = "admin";
+  ota["httpPath"] = "/update"; ota["httpPasswordRequired"] = webAccess.enabled;
   doc["wifiReconnectAttempts"] = wifiReconnectAttempts;
   doc["wifiRetrySeconds"] = WifiRecovery::RETRY_MS / 1000;
   doc["wifiFallbackSeconds"] = WifiRecovery::AP_DELAY_MS / 1000;
@@ -753,26 +765,34 @@ void handleNetwork() {
   wifiChangePending = true; wifiChangeQueuedAt = millis();
   server.send(202, "application/json", "{\"ok\":true,\"message\":\"Red guardada; iniciando conexion\"}");
 }
-constexpr char OTA_HTTP_REALM[] = "Pixel-MB OTA";
-bool httpOtaAuthenticated = false, httpOtaSuccess = false;
+bool httpOtaUploadStarted = false, httpOtaSuccess = false;
 String httpOtaError;
-bool otaHttpAuthorized() {
-  return server.authenticateDigest("admin", OTA_HTTP_DIGEST);
+void handleWebAccess() {
+  if(!authorized())return;
+  if(server.method()==HTTP_GET){
+    StaticJsonDocument<192> response;response["enabled"]=webAccess.enabled;response["username"]=webAccess.username;response["passwordSet"]=webAccess.password.length()>0;jsonReply(200,response);return;
+  }
+  if(!requireFS())return;
+  DynamicJsonDocument request(4096);if(!readJson(request,4096))return;
+  if(!request["enabled"].is<bool>() || !request["username"].is<const char *>()){errorReply(400,"Usuario y estado de acceso invalidos");return;}
+  WebAccessConfig next=webAccess;next.enabled=request["enabled"];next.username=request["username"].as<String>();
+  if(request.containsKey("password")){
+    if(!request["password"].is<const char *>()){errorReply(400,"Contrasena invalida");return;}
+    String password=request["password"].as<String>();if(password.length())next.password=password;
+  }
+  if(request["clearPassword"]==true && !next.enabled)next.password="";
+  if(!validWebUsername(next.username) || (next.password.length()&&!validWebPassword(next.password)) || (next.enabled&&!validWebPassword(next.password))){errorReply(400,"Usuario: 1..32 letras, numeros, . @ _ -. Introduce una contrasena para activar el acceso");return;}
+  if(!saveWebAccess(next)){errorReply(507,"No se pudo guardar el acceso web");return;}
+  webAccess=next;okReply();
 }
 void setupHttpOTA() {
   server.on("/update", HTTP_GET, []() {
-    if (!otaHttpAuthorized()) { server.requestAuthentication(DIGEST_AUTH, OTA_HTTP_REALM); return; }
-    server.send(200, "text/html; charset=utf-8",
-      "<!doctype html><html lang='en'><meta name='viewport' content='width=device-width,initial-scale=1'>"
-      "<title>Pixel-MB firmware update</title><h1>Firmware update</h1>"
-      "<p>Upload firmware.bin. Saved settings and animations are preserved. Keep power connected.</p>"
-      "<form method='POST' enctype='multipart/form-data'><input type='file' name='firmware' accept='.bin' required>"
-      "<button>Update firmware</button></form><p><a href='/'>Back to Pixel-MB</a></p></html>");
+    if(!webAuthorized())return;
+    server.send_P(200, "text/html; charset=utf-8", UPDATE_UI);
   });
   server.on("/update", HTTP_POST, []() {
-    if (!httpOtaAuthenticated || !otaHttpAuthorized()) {
-      server.requestAuthentication(DIGEST_AUTH, OTA_HTTP_REALM); return;
-    }
+    if(!webAuthorized())return;
+    if (!httpOtaUploadStarted) { errorReply(400, "Falta firmware.bin"); return; }
     if (!httpOtaSuccess) {
       otaUpdating = false;
       server.send(400, "application/json", "{\"error\":\"Firmware update failed; previous firmware retained\"}");
@@ -783,9 +803,9 @@ void setupHttpOTA() {
   }, []() {
     HTTPUpload &upload = server.upload();
     if (upload.status == UPLOAD_FILE_START) {
-      httpOtaAuthenticated = otaHttpAuthorized();
+      httpOtaUploadStarted = webAuthenticated();
       httpOtaSuccess = false; httpOtaError = "";
-      if (!httpOtaAuthenticated) return;
+      if(!httpOtaUploadStarted)return;
       if (upload.name != "firmware" || !upload.filename.endsWith(".bin")) {
         httpOtaError = "Only firmware .bin uploads are accepted"; return;
       }
@@ -793,15 +813,15 @@ void setupHttpOTA() {
       if (matrixReady) { matrix.clear(); matrix.show(); }
       const uint32_t maxSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
       if (!Update.begin(maxSpace, U_FLASH)) httpOtaError = "Cannot start firmware update";
-      Serial.println("HTTP OTA: actualizacion autenticada iniciada");
-    } else if (httpOtaAuthenticated && upload.status == UPLOAD_FILE_WRITE && !httpOtaError.length()) {
+      Serial.println("HTTP OTA: actualizacion web iniciada");
+    } else if (httpOtaUploadStarted && upload.status == UPLOAD_FILE_WRITE && !httpOtaError.length()) {
       if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) httpOtaError = "Flash write failed";
-    } else if (httpOtaAuthenticated && upload.status == UPLOAD_FILE_END) {
+    } else if (httpOtaUploadStarted && upload.status == UPLOAD_FILE_END) {
       if (!httpOtaError.length()) httpOtaSuccess = Update.end(true);
       else Update.end();
       if (!httpOtaSuccess) { otaUpdating = false; activate(currentScene); }
       Serial.printf("HTTP OTA: %s (%u bytes)\n", httpOtaSuccess ? "OK" : "ERROR", unsigned(upload.totalSize));
-    } else if (httpOtaAuthenticated && upload.status == UPLOAD_FILE_ABORTED) {
+    } else if (httpOtaUploadStarted && upload.status == UPLOAD_FILE_ABORTED) {
       Update.end(); otaUpdating = false; httpOtaSuccess = false;
       activate(currentScene);
     }
@@ -812,7 +832,9 @@ void setupHttpOTA() {
 void setupRoutes() {
   server.collectHeaders("X-API-Key");
   setupHttpOTA();
-  server.on("/", HTTP_GET, []() { server.send_P(200, "text/html; charset=utf-8", WEB_UI); });
+  server.on("/", HTTP_GET, []() { if(!webAuthorized())return; server.send_P(200, "text/html; charset=utf-8", WEB_UI); });
+  server.on("/api/web-access", HTTP_GET, handleWebAccess);
+  server.on("/api/web-access", HTTP_POST, handleWebAccess);
   server.on("/api/status", HTTP_GET, handleStatus);
   server.on("/api/sensors", HTTP_GET, handleSensors);
   server.on("/api/rotation", HTTP_GET, handleRotation);
@@ -843,6 +865,7 @@ void setupRoutes() {
     timeval tv = {static_cast<time_t>(doc["epoch"].as<uint32_t>()), 0}; settimeofday(&tv, nullptr); okReply();
   });
   server.onNotFound([]() {
+    if(!webAuthorized())return;
     if (apStarted && !server.uri().startsWith("/api/")) {
       server.sendHeader("Location", "http://192.168.4.1/", true);
       server.send(302, "text/plain", "Abrir Pixel-MB"); return;
@@ -880,7 +903,7 @@ void setupOTA() {
     if (matrixReady) { matrix.clear(); matrix.show(); }
     otaFsClosed = ArduinoOTA.getCommand() == U_FS && fsReady;
     if (otaFsClosed) { LittleFS.end(); fsReady = false; }
-    Serial.println("OTA: actualizacion autenticada iniciada");
+    Serial.println("OTA: actualizacion web iniciada");
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     static unsigned int lastPercent = 101;
@@ -1135,7 +1158,7 @@ void setup() {
   if (fsReady) {
     LittleFS.remove("/animation.tmp"); LittleFS.remove("/state.tmp"); LittleFS.remove("/rotation.tmp");
     if (!installDefaultAnimations()) Serial.println("No se pudieron instalar todos los iconos iniciales");
-    loadState(); loadRotation();
+    loadState(); loadRotation(); loadWebAccess(webAccess);
   }
   else Serial.println("LittleFS no montado. Cargar data/ con pio run -t uploadfs (solo instalación inicial).");
   matrix.setTextWrap(false); matrix.setFont(&TomThumb);
