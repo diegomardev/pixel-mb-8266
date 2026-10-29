@@ -3,7 +3,7 @@ const source=fs.readFileSync(__dirname+'/../web/index.html','utf8').split('<scri
 const nodes=new Map(),timers=[],handlers={};let reply,requests=0,fail=false,held=null;
 function $(id){if(!nodes.has(id))nodes.set(id,{hidden:false,textContent:'',title:'',value:'',style:{},attrs:{},classList:{toggle(){}},setAttribute(k,v){this.attrs[k]=v;}});return nodes.get(id);}
 const ctx=vm.createContext({$,document:{hidden:false},action:(id,fn)=>handlers[id]=fn,setInterval:(fn,ms)=>timers.push({fn,ms}),updateBaseButton(){},json:async()=>{requests++;if(held)await held;if(fail)throw Error('offline');return reply;}});
-vm.runInContext(source.slice(source.indexOf('function formatStorageBytes('),source.indexOf('async function readNetwork(')),ctx);
+vm.runInContext(source.slice(source.indexOf('function formatStorageBytes('),source.indexOf('let networkFieldsLoaded=')),ctx);
 const run=code=>vm.runInContext(code,ctx);
 assert.equal(run('formatStorageBytes(1024000)'),'1000 KiB');assert.equal(run('formatStorageBytes(1048576)'),'1 MiB');assert.equal(run('formatStorageBytes(0)'),'0 B');
 ctx.status={fsReady:true,fsTotal:1024000,fsUsed:794624};
