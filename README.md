@@ -11,7 +11,7 @@ Vista de la matriz 32×8: reloj con segundos y siete indicadores de lunes a domi
 
 - Interfaz web en español e inglés, con selector y preferencia guardada en el navegador.
 
-- Portal WiFi para configurar la red y escanear redes de 2,4 GHz.
+- Portal WiFi para configurar la red y escanear redes de 2,4 GHz; DHCP o IP fija con puerta de enlace, máscara y DNS.
 - Hotspot de recuperación tras 15 segundos sin conexión y reintentos cada 30 segundos.
 - Miniaturas animadas de los archivos guardados y papelera en cada tarjeta.
 - Panel de estado con barra de almacenamiento ocupado/libre para animaciones.
@@ -120,6 +120,7 @@ node tests/test_i18n.js
 node tests/test_board_status.js
 node tests/test_saved_previews.js
 node tests/test_random_autosave.js
+node tests/test_network_editor.js
 node tests/test_clock_options_editor.js
 node tests/test_rotation_duration.js
 node tests/test_base_scene.js

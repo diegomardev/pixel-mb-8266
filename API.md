@@ -488,6 +488,20 @@ curl -X POST 'http://192.168.1.50/api/network' \
 
 SSID de 1–32 bytes; contraseña WPA de 8–63 bytes, o cadena vacía para una red abierta. Devuelve 202 y comienza la conexión. La IP puede cambiar. Espera a que termine un escaneo antes de cambiar la red.
 
+### IP fija o DHCP
+
+En el editor, activa el interruptor «IP fija» dentro de WiFi y completa IP, puerta de enlace, máscara y DNS principal. DNS secundario es opcional. Pulsa «Aplicar IP fija» para guardar solo la dirección. Desactiva el interruptor y pulsa «Aplicar DHCP» para volver a la dirección automática. «Guardar y conectar» guarda conjuntamente SSID, contraseña y la configuración IP fija/DHCP seleccionada, también durante el primer arranque. El botón adicional de IP aplica solo el direccionamiento y conserva las credenciales guardadas. Elige una IP libre fuera del rango DHCP del router. La configuración persiste tras reiniciar y se aplica también en los reintentos de conexión.
+
+```bash
+curl -X POST 'http://IP_ACTUAL/api/network' \
+  -H 'Content-Type: application/json' \
+  -d '{"ssid":"MI_RED","staticIp":true,"address":"192.168.1.50","gateway":"192.168.1.1","subnet":"255.255.255.0","dns1":"192.168.1.1","dns2":"1.1.1.1"}'
+```
+
+Después abre `http://192.168.1.50/`. Para cambiar solo la IP puedes omitir `ssid` y `password`; el ESP conserva ambos. Para DHCP envía `{"staticIp":false}`. Si omites `password` conservando el SSID, se conserva la contraseña guardada. Para una red nueva, omitirla significa red abierta; enviarla explícitamente como `""` también configura red abierta. La interfaz conserva la contraseña al dejar el campo vacío con el mismo SSID.
+
+`GET /api/network` añade `staticIp`, `address`, `gateway`, `subnet`, `dns1` y `dns2` (configuración guardada). `ip` sigue siendo la IP actual. La API valida IPv4, máscara contigua y direcciones de equipo/puerta de enlace distintas y válidas dentro de la misma subred. Devuelve 400 sin guardar si son inválidas. El hotspot permanece disponible al aplicar cambios. Las redes guardadas con versiones anteriores usan DHCP.
+
 ### Recuperación automática de red
 
 Si no conecta al arrancar, o pierde el WiFi, tras 15 segundos activa `PIXEL-MB-xxxxxx`. Conéctate con `pixel-mb-local` y abre `http://192.168.4.1/`. Mientras tanto reintenta la red guardada cada 30 segundos sin cerrar el hotspot; los escaneos en curso posponen el reintento. Si recupera el router, el hotspot permanece disponible hasta reiniciar.
