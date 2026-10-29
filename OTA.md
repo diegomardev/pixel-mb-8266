@@ -1,56 +1,33 @@
-# Actualizaciones OTA del D1 mini
+# Actualización de firmware
 
-La versión 1.0.9 permite actualizar el firmware por HTTP autenticado. El editor y
-la API están en `http://IP_DEL_ESP/` (puerto 80). No requiere una conexión de vuelta
-desde el ESP al ordenador, por lo que funciona entre subredes si puedes acceder
-al editor y la red permite enviar el archivo por HTTP.
+## Desde la web
 
-## Credenciales locales
+Abre «Firmware y copias de seguridad» → «Actualizar firmware», selecciona el `.bin` compilado para tu placa y pulsa «Cargar firmware». Por defecto no se pide usuario ni contraseña. También puedes abrir directamente `http://IP_DEL_ESP/update`.
 
-La primera compilación genera `ota.local.json` con host y contraseña aleatoria.
-Se excluye de Git y no se imprime en las cargas normales. Conserva una copia
-privada: las siguientes compilaciones y cargas reutilizan esa contraseña.
-`include/LocalOtaConfig.h` contiene los hashes para autenticar las cargas y también
-se excluye de Git. Cambiar el host no requiere reinstalar el firmware. Para
-cambiar la contraseña del dispositivo de forma sencilla, recompila y carga por
-USB. El usuario del actualizador HTTP es `admin`.
+El archivo generado por PlatformIO está en `.pio/build/d1_mini/firmware.bin`. La actualización conserva la WiFi, los ajustes y las animaciones. Mantén la alimentación durante la carga y el reinicio. No cargues imágenes de LittleFS, copias completas de flash ni firmware de otra plataforma. Mientras la protección esté desactivada, cualquier equipo con acceso a la web de la placa puede actualizarla.
 
-## Primera carga por USB
+## Desde PlatformIO
+
+La primera carga se hace por USB:
 
 ```sh
 pio run -e d1_mini -t upload
 ```
 
-## Siguientes cargas por WiFi
-
-En PlatformIO: **Project Tasks → d1_mini_ota → General → Upload**.
+Para cargas HTTP posteriores, configura el campo `host` del archivo privado `ota.local.json` con la IP de la placa:
 
 ```sh
 pio run -e d1_mini_ota -t upload
 ```
 
-Host y contraseña se leen automáticamente desde `ota.local.json`. El entorno
-USB sigue siendo el predeterminado para recuperación. No uses `-v` con OTA
-clásica: las herramientas pueden mostrar argumentos con la contraseña.
+El cargador HTTP utiliza únicamente el host; no necesita credenciales ni una conexión de retorno del ESP al ordenador. No uses `uploadfs` para actualizar: sustituiría los archivos guardados.
 
-También puedes abrir `http://IP_DEL_ESP/update`, identificarte con `admin` y la
-contraseña del archivo local, y subir el archivo generado
-`.pio/build/d1_mini/firmware.bin`. Esta pantalla acepta únicamente firmware,
-no imágenes del sistema de archivos.
+## OTA clásica de Arduino
 
-La actualización apaga temporalmente la matriz y reinicia al terminar. El
-firmware normal conserva LittleFS: WiFi, configuración, rotación y animaciones.
-El entorno OTA bloquea `uploadfs` y `uploadfsota`, que reemplazarían esos datos.
-`/api/status` muestra el estado OTA, sin revelar la contraseña.
+La OTA clásica en el puerto 8266 conserva su contraseña del archivo privado `ota.local.json`. Es independiente del actualizador web sin contraseña. Conserva ese archivo y no lo publiques: contiene la clave de la OTA clásica.
 
-## OTA clásica opcional
+### Protección web opcional
 
-`pio run -e d1_mini_ota_native -t upload` usa ArduinoOTA (UDP 8266) y requiere
-conexión TCP desde el ESP al ordenador en el puerto 8266. Entre las subredes 10.205.12.x y 10.205.17.x, la contraseña fue aceptada pero
-la conexión de vuelta no se completó. En la misma subred 10.205.17.x se ha
-verificado una carga nativa completa. También se ha verificado una carga HTTP
-completa con `d1_mini_ota`.
+En «Acceso a la web» puedes activar un usuario y una contraseña para toda la interfaz, API y actualizador. **Deshabilitada por defecto**: mientras esté apagada puedes cargar el `.bin` directamente. Se usa autenticación HTTP Digest y los ajustes se guardan en la placa. La contraseña no se devuelve por API ni se incluye en las copias. Si la olvidas, debes borrar la configuración por USB. `GET/POST /api/web-access` consulta o cambia `enabled`, `username` y `password`; dejar la contraseña vacía conserva la anterior. Una vez activada, las llamadas API también requieren autenticación Digest. La OTA clásica conserva su clave independiente.
 
-OTA clásica solo se inicia al conectar a la WiFi configurada. Usa cualquier
-actualización OTA en una red de confianza y sin publicar los puertos en Internet.
-HTTP Digest autentica la carga, pero no cifra el firmware ni el tráfico.
+Si activas la protección web y quieres usar el cargador HTTP de PlatformIO, añade `webUsername` y `webPassword` al archivo privado `ota.local.json`. Sin protección web no hacen falta estos campos.
