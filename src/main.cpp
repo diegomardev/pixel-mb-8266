@@ -34,6 +34,13 @@ ESP8266WebServer server(HTTP_PORT);
 ESP8266WebServer portal(80);
 DNSServer dns;
 String wifiSsid, wifiPassword;
+NetworkAddress networkAddress;
+IPAddress networkIP(uint32_t ip){return IPAddress(ip>>24,(ip>>16)&255,(ip>>8)&255,ip&255);}
+String networkIPText(uint32_t ip){return ip ? networkIP(ip).toString() : String();}
+bool applyNetworkAddress(){
+  if(networkAddress.enabled)return WiFi.config(networkIP(networkAddress.ip),networkIP(networkAddress.gateway),networkIP(networkAddress.subnet),networkIP(networkAddress.dns1),networkIP(networkAddress.dns2));
+  return WiFi.config(IPAddress(0U),IPAddress(0U),IPAddress(0U));
+}
 bool wifiChangePending = false;
 uint32_t wifiChangeQueuedAt = 0;
 bool wifiScanRequested = false;
@@ -608,7 +615,7 @@ void handleAnimations() {
 void handleStatus() {
   if (!authorized()) return;
   DynamicJsonDocument doc(8192);
-  doc["firmware"] = "Pixel-MB 1.0.31"; doc["api"] = "v3-subset+local-v1";
+  doc["firmware"] = "Pixel-MB 1.0.33"; doc["api"] = "v3-subset+local-v1";
   doc["ip"] = WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
   doc["port"] = HTTP_PORT;
   doc["wifiSsid"] = wifiSsid;
@@ -694,7 +701,13 @@ void handleWifiScan() {
 void handleNetwork() {
   if (!authorized()) return;
   if (server.method() == HTTP_GET) {
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<1024> doc;
+    doc["staticIp"] = networkAddress.enabled;
+    doc["address"] = networkIPText(networkAddress.ip);
+    doc["gateway"] = networkIPText(networkAddress.gateway);
+    doc["subnet"] = networkIPText(networkAddress.subnet);
+    doc["dns1"] = networkIPText(networkAddress.dns1);
+    doc["dns2"] = networkIPText(networkAddress.dns2);
     doc["ssid"] = wifiSsid; doc["connected"] = WiFi.status() == WL_CONNECTED;
     doc["connecting"] = wifiChangePending || (wifiSsid.length() && WiFi.status() != WL_CONNECTED);
     doc["ip"] = WiFi.localIP().toString(); doc["apActive"] = apStarted;
@@ -702,19 +715,41 @@ void handleNetwork() {
     jsonReply(200, doc); return;
   }
   DynamicJsonDocument doc(4096); if (!readJson(doc)) return;
-  if (!doc["ssid"].is<const char *>() || !doc["password"].is<const char *>()) {
-    errorReply(400, "Se requiere ssid y password (cadena vacia para una red abierta)"); return;
+  const bool addressOnly=!doc.containsKey("ssid");
+  if ((addressOnly && (!doc.containsKey("staticIp") || doc.containsKey("password"))) ||
+      (!addressOnly && !doc["ssid"].is<const char *>()) ||
+      (doc.containsKey("password") && !doc["password"].is<const char *>())) {
+    errorReply(400, "Se requiere ssid o staticIp; password requiere ssid"); return;
   }
+  if(addressOnly&&!wifiSsid.length()){errorReply(400,"Configura primero una red WiFi");return;}
+  if(wifiChangePending){errorReply(409,"Espera a que se aplique la conexion WiFi");return;}
   if (WiFi.scanComplete() == WIFI_SCAN_RUNNING) {
     errorReply(409, "Espera a que termine el escaneo antes de conectar"); return;
   }
-  String ssid = doc["ssid"].as<String>(), password = doc["password"].as<String>();
+  String ssid = addressOnly ? wifiSsid : doc["ssid"].as<String>();
+  String password = doc.containsKey("password") ? doc["password"].as<String>() : (ssid==wifiSsid ? wifiPassword : String());
+  NetworkAddress next=networkAddress;
+  if(doc.containsKey("staticIp")){
+    if(!doc["staticIp"].is<bool>()){errorReply(400,"staticIp debe ser booleano");return;}
+    next.enabled=doc["staticIp"].as<bool>();
+  }
+  if(next.enabled){
+    const char *keys[]={"address","gateway","subnet","dns1","dns2"};
+    uint32_t *fields[]={&next.ip,&next.gateway,&next.subnet,&next.dns1,&next.dns2};
+    for(uint8_t i=0;i<5;++i){
+      if(!doc.containsKey(keys[i]))continue;
+      const char *value=doc[keys[i]].as<const char *>();
+      if(i==4&&value&&!*value){next.dns2=0;continue;}
+      if(!parseNetworkIPv4(value,*fields[i])){errorReply(400,"Direccion IPv4 invalida");return;}
+    }
+    if(!validNetworkAddress(next)){errorReply(400,"IP fija invalida: revisa IP, mascara, puerta de enlace y DNS");return;}
+  }
   if (!ssid.length() || ssid.length() > 32 ||
       (password.length() && (password.length() < 8 || password.length() > 63))) {
     errorReply(400, "SSID: 1..32 bytes; clave WPA: 8..63 bytes, o vacia para red abierta"); return;
   }
-  if (!saveNetworkConfig(ssid, password)) { errorReply(507, "No se pudo guardar la red"); return; }
-  wifiSsid = ssid; wifiPassword = password;
+  if (!saveNetworkConfig(ssid, password, next)) { errorReply(507, "No se pudo guardar la red"); return; }
+  wifiSsid = ssid; wifiPassword = password; networkAddress=next;
   wifiChangePending = true; wifiChangeQueuedAt = millis();
   server.send(202, "application/json", "{\"ok\":true,\"message\":\"Red guardada; iniciando conexion\"}");
 }
@@ -887,7 +922,7 @@ void wifiLoop() {
     if (otaStarted) { ArduinoOTA.end(); otaStarted = false; }
     if (mdnsStarted) { MDNS.close(); mdnsStarted = false; }
     WiFi.disconnect(false); WiFi.mode(WIFI_AP_STA);
-    WiFi.setAutoReconnect(true); WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
+    WiFi.setAutoReconnect(true); applyNetworkAddress(); WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
     wifiRecovery.begin(millis());
   }
   const bool connected = WiFi.status() == WL_CONNECTED;
@@ -914,7 +949,7 @@ void wifiLoop() {
     WiFi.disconnect(false); // Solo STA: no apagar el punto de acceso.
     WiFi.mode(apStarted ? WIFI_AP_STA : WIFI_STA);
     WiFi.setAutoReconnect(true);
-    WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
+    applyNetworkAddress(); WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
   }
   if (apStarted) { dns.processNextRequest(); if (HTTP_PORT != 80) portal.handleClient(); }
   if (WiFi.status() == WL_CONNECTED && !mdnsStarted) {
@@ -1082,7 +1117,7 @@ void ledBootTest() {
   Serial.println("Prueba LED enviada; no detecta electricamente si hay luz.");
 }
 void setup() {
-  Serial.begin(115200); Serial.println("\nPixel-MB 1.0.31 — Arduino / ESP8266");
+  Serial.begin(115200); Serial.println("\nPixel-MB 1.0.33 — Arduino / ESP8266");
   matrixReady = matrix.configurationValid();
   Serial.printf("Matriz: GPIO real=%d, LED reales=%u, esperados=%u, heap=%u\n",
     matrix.getPin(), matrix.numPixels(), uint16_t(MATRIX_WIDTH) * MATRIX_HEIGHT, ESP.getFreeHeap());
@@ -1111,9 +1146,9 @@ void setup() {
   WiFi.persistent(false); WiFi.hostname(HOSTNAME);
   wifiRecovery.begin(millis());
   wifiSsid = WIFI_SSID; wifiPassword = WIFI_PASSWORD;
-  loadNetworkConfig(wifiSsid, wifiPassword);
+  loadNetworkConfig(wifiSsid, wifiPassword, networkAddress);
   if (wifiSsid.length()) {
-    WiFi.mode(WIFI_STA); WiFi.setAutoReconnect(true); WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str()); wifiRecovery.begin(millis());
+    WiFi.mode(WIFI_STA); WiFi.setAutoReconnect(true); applyNetworkAddress(); WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str()); wifiRecovery.begin(millis());
   } else startAP();
   configTime(TIMEZONE, "pool.ntp.org", "time.nist.gov");
   setupRoutes();
