@@ -26,6 +26,7 @@ extern "C" {
 #include "BmpSensor.h"
 #include "Rotation.h"
 #include "DefaultStore.h"
+#include "FlashStorage.h"
 #include "VariableUpdate.h"
 #include "WifiScanResults.h"
 #include "WebUI.h"
@@ -632,6 +633,7 @@ void handleStatus() {
   doc["port"] = HTTP_PORT;
   doc["wifiSsid"] = wifiSsid;
   doc["wifiConnected"] = WiFi.status() == WL_CONNECTED;
+  if (WiFi.status() == WL_CONNECTED) doc["wifiRssi"] = WiFi.RSSI(); else doc["wifiRssi"] = nullptr;
   JsonObject ota = doc.createNestedObject("ota");
   ota["enabled"] = true; ota["ready"] = otaStarted;
   ota["updating"] = otaUpdating; ota["port"] = OTA_PORT;
@@ -836,6 +838,26 @@ void setupRoutes() {
   server.on("/api/web-access", HTTP_GET, handleWebAccess);
   server.on("/api/web-access", HTTP_POST, handleWebAccess);
   server.on("/api/status", HTTP_GET, handleStatus);
+  // Storage diagnostics expose names/sizes only; never configuration contents.
+  server.on("/api/storage", HTTP_GET, []() {
+    if (!authorized() || !requireFS()) return;
+    FSInfo info; if (!LittleFS.info(info)) { errorReply(500, "No se pudo consultar LittleFS"); return; }
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, "application/json; charset=utf-8", "");
+    StaticJsonDocument<256> summary;
+    summary["total"]=info.totalBytes; summary["used"]=info.usedBytes;
+    summary["blockSize"]=info.blockSize; summary["pageSize"]=info.pageSize;
+    String body; serializeJson(summary, body); body.remove(body.length()-1);
+    server.sendContent(body+",\"root\":[");
+    Dir dir=LittleFS.openDir("/"); bool first=true;
+    while(dir.next()) {
+      StaticJsonDocument<256> entry;
+      entry["name"]=dir.fileName(); entry["directory"]=dir.isDirectory(); entry["bytes"]=dir.fileSize();
+      body=""; serializeJson(entry,body); if(!first)server.sendContent(","); first=false;
+      server.sendContent(body); yield();
+    }
+    server.sendContent("]}"); server.sendContent("");
+  });
   server.on("/api/sensors", HTTP_GET, handleSensors);
   server.on("/api/rotation", HTTP_GET, handleRotation);
   server.on("/api/rotation", HTTP_POST, handleRotation);
@@ -1153,8 +1175,7 @@ void setup() {
   }
   else Serial.println("ERROR de configuracion/buffer LED: se omite el control de matriz; WiFi sigue activo");
   variables.to<JsonObject>();
-  LittleFSConfig cfg; cfg.setAutoFormat(false); LittleFS.setConfig(cfg);
-  fsReady = LittleFS.begin();
+  fsReady = mountAnimationStorage();
   if (fsReady) {
     LittleFS.remove("/animation.tmp"); LittleFS.remove("/state.tmp"); LittleFS.remove("/rotation.tmp");
     if (!installDefaultAnimations()) Serial.println("No se pudieron instalar todos los iconos iniciales");
