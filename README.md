@@ -52,6 +52,9 @@ pio device monitor -b 115200
 
 El proyecto usa Arduino como framework. PlatformIO instala las versiones de las dependencias definidas en [`platformio.ini`](platformio.ini). El editor y las animaciones predeterminadas se generan e incorporan al compilar; **no hace falta cargar LittleFS** para la instalación normal.
 
+El firmware base incorpora **42 animaciones** en un paquete comprimido. En una placa completamente borrada inicializa LittleFS y las instala automáticamente; no requiere `uploadfs`. La extracción usa una ventana de 1 KiB y escritura por bloques, sin cargar toda la biblioteca en RAM. En placas ya configuradas conserva los archivos y la rotación existentes. La biblioteca inicial no incluye una copia de la rotación personal. Una partición con datos que no pueda montarse nunca se formatea automáticamente.
+
+
 La primera compilación crea `ota.local.json` y `include/LocalOtaConfig.h` con credenciales OTA propias. Ambos están excluidos de Git. No publiques esos archivos ni binarios personales que las incorporen.
 
 ## Configurar WiFi
@@ -82,7 +85,7 @@ Para mostrar valores externos, añade una fila Texto con `CO2: {Co2}` o un icono
 
 Importa un JSON desde el editor y pulsa «Guardar en ESP8266». La placa guarda solo lo que elijas. La casilla «Usar en aleatorio» se guarda automáticamente al pulsarla. Cada animación puede marcarse para la lista aleatoria; añade una fila «Animación aleatoria» para utilizarla. Las descargas desde el editor son JSON.
 
-La [galería de animaciones](https://diegomardev.com/apps/pixel-mb) sirve para previsualizar y descargar; después se importan los archivos en el ESP. Este repositorio no redistribuye ese catálogo ni logos personales. Los ejemplos propios y cuatro efectos con licencia y atribuciones están en [`examples`](examples) y [`data/animations`](data/animations); consulta [`ANIMACIONES.md`](ANIMACIONES.md).
+La [galería de animaciones](https://diegomardev.com/apps/pixel-mb) sirve para previsualizar y descargar; después se importan los archivos en el ESP. El paquete base de [`data/animations`](data/animations) contiene las 42 animaciones seleccionadas de la placa de referencia, incluidos sus iconos personales. Los ejemplos y los efectos adaptados conservan sus atribuciones; consulta [`ANIMACIONES.md`](ANIMACIONES.md).
 
 Para cargar tus propios JSON de `animations_default` por API:
 

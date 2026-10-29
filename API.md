@@ -27,6 +27,7 @@ Con la configuración actual del proyecto, la clave está vacía y no hace falta
 | Método | Ruta | Uso |
 | --- | --- | --- |
 | GET | `/api/status` | Estado general, escena, memoria, almacenamiento y OTA |
+| GET | `/api/storage` | Diagnóstico LittleFS: capacidad, ocupación, tamaño de bloque y nombres/tamaños de los archivos raíz; no devuelve su contenido |
 | GET | `/api/v3/settings` | Brillo, encendido y segundos del reloj |
 | POST | `/api/v3/settings` | Cambiar brillo, encendido o segundos |
 | POST | `/api/v3/notify` | Mostrar una notificación temporal |

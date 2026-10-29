@@ -15,7 +15,7 @@ También se ha localizado el [archivo histórico de animaciones](https://awtrix.
 
 ## Importar animaciones propias
 
-El repositorio no incluye logos personales ni el catálogo descargado de AWTRIX Hub. Puedes importar tus propios archivos; las pruebas usan un dibujo mínimo creado para este proyecto.
+El paquete base incluye las 42 animaciones seleccionadas de la placa de referencia, incluidos sus iconos personales; no es el catálogo completo de la galería. Se conservan los nombres, fotogramas e intervalos originales. Los archivos se comprimen sin pérdida para ahorrar espacio; las licencias y atribuciones de cada origen siguen aplicándose. Puedes importar además tus propios archivos.
 
 El editor web acepta **.awtrixer**, **.piskel**, **.json** y **.awx**. Importa el archivo, cambia el nombre si quieres y pulsa Guardar en ESP8266. Luego elige la animación en Rotación de pantallas o pulsa Añadir a rotación en su tarjeta. Finalmente aplica y guarda la secuencia.
 

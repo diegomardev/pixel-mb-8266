@@ -16,3 +16,5 @@ PlatformIO descarga las bibliotecas originales con sus propios avisos de licenci
 - [Adafruit BusIO](https://github.com/adafruit/Adafruit_BusIO), MIT.
 
 Los archivos LICENSE originales de las bibliotecas se descargan en `.pio/libdeps/`; los del core están en el paquete del framework Arduino. Antes de redistribuir binarios modificados, conserva los avisos y cumple las obligaciones de cada dependencia. Esta lista no sustituye sus licencias completas.
+
+El paquete inicial de animaciones usa el descompresor **uzlib** incluido en ESP8266 Arduino Core (Joergen Ibsen y Paul Sokolovsky, licencia zlib). Se compilan sus fuentes originales del SDK sin modificarlas; conservan sus avisos de copyright.
