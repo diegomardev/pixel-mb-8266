@@ -1017,7 +1017,8 @@ void drawSceneText(const String &text, int16_t left, uint32_t color, uint16_t sc
       textWidth = w ? w + max<int16_t>(x, 0) : 0;
       const bool willScroll = textWidth > available;
       if (!textInitialized || wasScrolling != willScroll) {
-        textX = willScroll ? left : left + (available - textWidth) / 2;
+        // Give scrolling notifications a complete first pass from the right edge.
+        textX = willScroll ? (notifying ? MATRIX_WIDTH : left) : left + (available - textWidth) / 2;
         scrollAt = now; scrollLoops = 0;
       } else if (!willScroll) textX = left + (available - textWidth) / 2;
       textInitialized = true;
